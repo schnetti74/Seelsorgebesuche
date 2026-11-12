@@ -1,0 +1,391 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2f4a63">
+<title>Besuche</title>
+<style>
+  :root{
+    --bg:#f3f4f6; --card:#fff; --text:#1f2933; --muted:#6b7280; --line:#e5e7eb;
+    --primary:#2f4a63; --primary-d:#243a4e;
+    --green:#2e8b57; --yellow:#d9a400; --red:#c0392b;
+    --green-bg:#e8f5ee; --yellow-bg:#fff7db; --red-bg:#fdecea;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);line-height:1.4;-webkit-text-size-adjust:100%}
+  header{background:var(--primary);color:#fff;padding:12px 16px;padding-top:max(12px,env(safe-area-inset-top));display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+  header h1{font-size:18px;margin:0;font-weight:600}
+  header button{background:transparent;border:1px solid rgba(255,255,255,.5);color:#fff;border-radius:8px;padding:6px 10px;font-size:14px}
+  main{max-width:720px;margin:0 auto;padding:12px 12px 90px}
+  .summary{display:flex;gap:8px;margin:4px 0 12px}
+  .pill{flex:1;background:var(--card);border-radius:12px;padding:10px 12px;border:1px solid var(--line)}
+  .pill b{display:block;font-size:22px}
+  .pill span{font-size:12px;color:var(--muted)}
+  .pill.red b{color:var(--red)} .pill.yellow b{color:var(--yellow)} .pill.green b{color:var(--green)}
+  .chips{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:7px 14px;font-size:14px;white-space:nowrap;color:var(--text)}
+  .chip.active{background:var(--primary);color:#fff;border-color:var(--primary)}
+  .card{background:var(--card);border-radius:12px;padding:12px 14px;margin-bottom:10px;border:1px solid var(--line);border-left:6px solid var(--green)}
+  .card.yellow{border-left-color:var(--yellow)} .card.red{border-left-color:var(--red)}
+  .row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+  .name{font-weight:600;font-size:16px}
+  .tag{display:inline-block;font-size:11px;padding:2px 8px;border-radius:999px;background:#eef1f5;color:var(--muted);margin-left:6px;vertical-align:middle}
+  .meta{font-size:13px;color:var(--muted);margin-top:2px}
+  .status{font-size:13px;font-weight:600;margin-top:6px;display:inline-block;padding:3px 10px;border-radius:8px}
+  .status.green{background:var(--green-bg);color:var(--green)}
+  .status.yellow{background:var(--yellow-bg);color:#8a6a00}
+  .status.red{background:var(--red-bg);color:var(--red)}
+  .todo{margin-top:8px;font-size:14px;background:#eef4fb;border-radius:8px;padding:8px 10px;white-space:pre-wrap}
+  .todo small{display:block;color:var(--primary);font-weight:600;margin-bottom:2px}
+  .bem{margin-top:6px;font-size:13px;color:var(--muted);white-space:pre-wrap}
+  .actions{display:flex;gap:8px;margin-top:10px}
+  button{font:inherit;cursor:pointer}
+  .btn{border:none;border-radius:10px;padding:10px 14px;font-size:15px}
+  .btn.primary{background:var(--primary);color:#fff}
+  .btn.primary:active{background:var(--primary-d)}
+  .btn.ghost{background:#eef1f5;color:var(--text)}
+  .btn.danger{background:var(--red-bg);color:var(--red)}
+  .btn.grow{flex:1}
+  .fab{position:fixed;right:16px;bottom:max(16px,env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--primary);color:#fff;font-size:30px;border:none;box-shadow:0 4px 12px rgba(0,0,0,.25)}
+  .empty{text-align:center;color:var(--muted);padding:40px 16px}
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:flex-end;justify-content:center;z-index:50}
+  .modal{background:#fff;width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px;max-height:92vh;overflow:auto;padding-bottom:max(16px,env(safe-area-inset-bottom))}
+  @media(min-width:600px){.overlay{align-items:center}.modal{border-radius:16px}}
+  .modal h2{margin:0 0 12px;font-size:18px}
+  label{display:block;font-size:13px;color:var(--muted);margin:10px 0 4px}
+  input,select,textarea{width:100%;font:inherit;font-size:16px;padding:10px;border:1px solid #cfd6de;border-radius:10px;background:#fff;color:var(--text)}
+  textarea{min-height:70px;resize:vertical}
+  .hint{font-size:12px;color:var(--muted);margin-top:4px}
+  .old{background:#eef4fb;border-radius:8px;padding:8px 10px;font-size:14px;white-space:pre-wrap;margin-bottom:6px}
+  .auth{max-width:380px;margin:0 auto;padding:40px 20px}
+  .auth h1{font-size:24px;margin:0 0 4px}
+  .auth p{color:var(--muted);margin:0 0 20px}
+  .tabs{display:flex;margin-bottom:12px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .tabs button{flex:1;padding:10px;border:none;background:#fff;font-size:15px}
+  .tabs button.active{background:var(--primary);color:#fff}
+  .err{background:var(--red-bg);color:var(--red);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:10px}
+  .ok{background:var(--green-bg);color:var(--green);padding:8px 10px;border-radius:8px;font-size:14px;margin-top:10px}
+  .link{background:none;border:none;color:var(--primary);text-decoration:underline;padding:8px 0;font-size:14px}
+  .setup{background:var(--yellow-bg);border-radius:10px;padding:14px;margin:20px;font-size:14px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="modal"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getAuth, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, sendPasswordResetEmail, signOut } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+import { getFirestore, collection, doc, onSnapshot, addDoc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+
+/* ====== HIER DEINE FIREBASE-DATEN EINTRAGEN (neues Projekt!) ====== */
+const firebaseConfig = {
+  apiKey: "DAIzaSyDR4T5MAzTd0LOKCwcu_K4Sopkh7tcWq7E",
+  authDomain: "seelsorgebesuche.firebaseapp.com",
+  projectId: "seelsorgebesuche",
+  storageBucket: "seelsorgebesuche.firebasestorage.app",
+  messagingSenderId: "157306721257",
+  appId: "1:157306721257:web:83cef3414eea26b0107178"
+};
+/* ================================================================= */
+
+/* Besuchsrhythmus: Gruppe A = Abendmahl zu Hause, Gruppe B = Jahresbesuch */
+const REGELN = {
+  A: { label: "Abendmahl zu Hause", limit: 21,  warn: 14  },
+  B: { label: "Jahresbesuch",       limit: 365, warn: 335 }
+};
+
+const $app = document.getElementById("app");
+const $modal = document.getElementById("modal");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+if (firebaseConfig.apiKey.startsWith("DEIN")) {
+  $app.innerHTML = `<div class="setup"><b>Einrichtung fehlt noch.</b><br>Trage oben in der Datei index.html die Daten deines Firebase-Projekts bei <code>firebaseConfig</code> ein.</div>`;
+  throw new Error("Firebase nicht konfiguriert");
+}
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+let user = null;
+let items = [];
+let filter = "alle";
+let unsub = null;
+let authMode = "login";
+let authMsg = null;
+
+/* ---------- Datum ---------- */
+function todayStr() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+function toUTC(str) { const [y,m,d] = str.split("-").map(Number); return Date.UTC(y, m-1, d); }
+function daysSince(str) { return Math.round((toUTC(todayStr()) - toUTC(str)) / 86400000); }
+function fmtDate(str) { if (!str) return "–"; const [y,m,d] = str.split("-"); return `${d}.${m}.${y}`; }
+function fmtDays(n) {
+  if (n >= 90) return `ca. ${Math.round(n/30)} Monaten`;
+  if (n === 1) return "1 Tag";
+  return `${n} Tagen`;
+}
+
+/* ---------- Status ---------- */
+function status(g) {
+  const r = REGELN[g.gruppe] || REGELN.A;
+  if (!g.letzterBesuch) return { level: "red", ratio: 99, text: "Noch kein Besuch erfasst", ago: "" };
+  const d = daysSince(g.letzterBesuch);
+  const ago = d <= 0 ? "heute" : d === 1 ? "gestern" : `vor ${fmtDays(d)}`;
+  let level = "green", text;
+  if (d >= r.limit) {
+    level = "red";
+    text = d === r.limit ? "Heute fällig" : `Überfällig seit ${fmtDays(d - r.limit)}`;
+  } else {
+    if (d >= r.warn) level = "yellow";
+    text = `Fällig in ${fmtDays(r.limit - d)}`;
+  }
+  return { level, ratio: d / r.limit, text, ago };
+}
+
+/* ---------- Auth ---------- */
+const FEHLER = {
+  "auth/invalid-email": "Die E-Mail-Adresse ist ungültig.",
+  "auth/invalid-credential": "E-Mail oder Passwort stimmt nicht.",
+  "auth/user-not-found": "E-Mail oder Passwort stimmt nicht.",
+  "auth/wrong-password": "E-Mail oder Passwort stimmt nicht.",
+  "auth/email-already-in-use": "Für diese E-Mail gibt es schon ein Konto.",
+  "auth/weak-password": "Das Passwort ist zu schwach (mindestens 8 Zeichen).",
+  "auth/too-many-requests": "Zu viele Versuche. Bitte später noch einmal probieren.",
+  "auth/network-request-failed": "Keine Verbindung zum Netz."
+};
+const fehlerText = e => FEHLER[e.code] || "Das hat nicht geklappt: " + (e.code || e.message);
+
+function renderAuth() {
+  $app.innerHTML = `
+  <div class="auth">
+    <h1>Besuche</h1>
+    <p>Seelsorgebesuche im Blick behalten</p>
+    <div class="tabs">
+      <button data-a="mode-login" class="${authMode==="login"?"active":""}">Anmelden</button>
+      <button data-a="mode-reg" class="${authMode==="reg"?"active":""}">Registrieren</button>
+    </div>
+    <label>E-Mail</label>
+    <input id="email" type="email" autocomplete="username" inputmode="email">
+    <label>Passwort</label>
+    <input id="pw" type="password" autocomplete="${authMode==="login"?"current-password":"new-password"}">
+    ${authMode==="reg" ? `<div class="hint">Mindestens 8 Zeichen.</div>` : ""}
+    ${authMsg ? `<div class="${authMsg.ok?"ok":"err"}">${esc(authMsg.text)}</div>` : ""}
+    <div style="margin-top:16px"><button class="btn primary" style="width:100%" data-a="auth-go">${authMode==="login"?"Anmelden":"Konto anlegen"}</button></div>
+    ${authMode==="login" ? `<div style="text-align:center"><button class="link" data-a="reset">Passwort vergessen?</button></div>` : ""}
+  </div>`;
+}
+
+async function authGo() {
+  const email = document.getElementById("email").value.trim();
+  const pw = document.getElementById("pw").value;
+  authMsg = null;
+  try {
+    if (authMode === "login") await signInWithEmailAndPassword(auth, email, pw);
+    else {
+      if (pw.length < 8) throw { code: "auth/weak-password" };
+      await createUserWithEmailAndPassword(auth, email, pw);
+    }
+  } catch (e) { authMsg = { ok: false, text: fehlerText(e) }; renderAuth(); document.getElementById("email").value = email; }
+}
+async function resetPw() {
+  const email = document.getElementById("email").value.trim();
+  if (!email) { authMsg = { ok:false, text:"Bitte oben deine E-Mail eintragen." }; return renderAuth(); }
+  try { await sendPasswordResetEmail(auth, email); authMsg = { ok:true, text:"Wir haben dir eine E-Mail zum Zurücksetzen geschickt." }; }
+  catch (e) { authMsg = { ok:false, text: fehlerText(e) }; }
+  renderAuth(); document.getElementById("email").value = email;
+}
+
+/* ---------- Hauptansicht ---------- */
+function renderMain() {
+  const list = items.map(g => ({ ...g, st: status(g) }));
+  const count = {
+    alle: list.length,
+    A: list.filter(g => g.gruppe === "A").length,
+    B: list.filter(g => g.gruppe === "B").length
+  };
+  const red = list.filter(g => g.st.level === "red").length;
+  const yellow = list.filter(g => g.st.level === "yellow").length;
+  const green = list.filter(g => g.st.level === "green").length;
+
+  const shown = list
+    .filter(g => filter === "alle" || g.gruppe === filter)
+    .sort((a, b) => b.st.ratio - a.st.ratio || a.name.localeCompare(b.name, "de"));
+
+  $app.innerHTML = `
+  <header><h1>Besuche</h1><button data-a="logout">Abmelden</button></header>
+  <main>
+    <div class="summary">
+      <div class="pill red"><b>${red}</b><span>überfällig</span></div>
+      <div class="pill yellow"><b>${yellow}</b><span>bald fällig</span></div>
+      <div class="pill green"><b>${green}</b><span>in Ordnung</span></div>
+    </div>
+    <div class="chips">
+      <button class="chip ${filter==="alle"?"active":""}" data-a="filter" data-v="alle">Alle (${count.alle})</button>
+      <button class="chip ${filter==="A"?"active":""}" data-a="filter" data-v="A">Abendmahl (${count.A})</button>
+      <button class="chip ${filter==="B"?"active":""}" data-a="filter" data-v="B">Jahresbesuch (${count.B})</button>
+    </div>
+    ${shown.length ? shown.map(card).join("") : `<div class="empty">${items.length ? "Keine Einträge in dieser Gruppe." : "Noch niemand eingetragen.<br>Mit dem + unten rechts legst du den ersten Eintrag an."}</div>`}
+  </main>
+  <button class="fab" data-a="new" aria-label="Hinzufügen">+</button>`;
+}
+
+function card(g) {
+  const st = g.st;
+  return `
+  <div class="card ${st.level}">
+    <div class="row">
+      <div>
+        <div class="name">${esc(g.name)}${g.typ === "familie" ? `<span class="tag">Familie</span>` : ""}<span class="tag">${g.gruppe === "A" ? "Abendmahl" : "Jahresbesuch"}</span></div>
+        <div class="meta">Letzter Besuch: ${fmtDate(g.letzterBesuch)}${st.ago ? " (" + st.ago + ")" : ""}</div>
+      </div>
+    </div>
+    <span class="status ${st.level}">${esc(st.text)}</span>
+    ${g.naechsterBesuch ? `<div class="todo"><small>Beim nächsten Besuch ansprechen</small>${esc(g.naechsterBesuch)}</div>` : ""}
+    ${g.bemerkung ? `<div class="bem">${esc(g.bemerkung)}</div>` : ""}
+    <div class="actions">
+      <button class="btn primary grow" data-a="visit" data-id="${g.id}">Besuch eintragen</button>
+      <button class="btn ghost" data-a="edit" data-id="${g.id}">Bearbeiten</button>
+    </div>
+  </div>`;
+}
+
+/* ---------- Dialoge ---------- */
+function closeModal() { $modal.innerHTML = ""; }
+
+function openVisit(id) {
+  const g = items.find(x => x.id === id);
+  if (!g) return;
+  $modal.innerHTML = `
+  <div class="overlay" data-a="overlay"><div class="modal">
+    <h2>Besuch: ${esc(g.name)}</h2>
+    <label>Datum des Besuchs</label>
+    <input id="v-date" type="date" value="${todayStr()}" max="${todayStr()}">
+    ${g.naechsterBesuch ? `<label>Das war vorgemerkt</label><div class="old">${esc(g.naechsterBesuch)}</div>` : ""}
+    <label>Für den nächsten Besuch vormerken (optional)</label>
+    <textarea id="v-next" placeholder="Nur Stichworte"></textarea>
+    <div class="hint">Die bisherige Vormerkung wird mit dem Speichern ersetzt.</div>
+    <div class="actions" style="margin-top:16px">
+      <button class="btn ghost" data-a="close">Abbrechen</button>
+      <button class="btn primary grow" data-a="visit-save" data-id="${g.id}">Speichern</button>
+    </div>
+  </div></div>`;
+}
+
+function openEdit(id) {
+  const g = id ? items.find(x => x.id === id) : { name:"", typ:"einzeln", gruppe:"A", letzterBesuch:"", bemerkung:"", naechsterBesuch:"" };
+  if (!g) return;
+  $modal.innerHTML = `
+  <div class="overlay" data-a="overlay"><div class="modal">
+    <h2>${id ? "Eintrag bearbeiten" : "Neuer Eintrag"}</h2>
+    <label>Name</label>
+    <input id="e-name" value="${esc(g.name)}" placeholder="z. B. Maria Mustermann / Familie Muster">
+    <label>Einzelperson oder Familie</label>
+    <select id="e-typ">
+      <option value="einzeln" ${g.typ==="einzeln"?"selected":""}>Einzelperson</option>
+      <option value="familie" ${g.typ==="familie"?"selected":""}>Familie</option>
+    </select>
+    <label>Besuchsrhythmus</label>
+    <select id="e-gruppe">
+      <option value="A" ${g.gruppe==="A"?"selected":""}>Abendmahl zu Hause (spätestens alle 3 Wochen)</option>
+      <option value="B" ${g.gruppe==="B"?"selected":""}>Jahresbesuch (einmal im Jahr)</option>
+    </select>
+    <label>Letzter Besuch</label>
+    <input id="e-date" type="date" value="${esc(g.letzterBesuch || "")}" max="${todayStr()}">
+    <label>Beim nächsten Besuch ansprechen</label>
+    <textarea id="e-next" placeholder="Nur Stichworte">${esc(g.naechsterBesuch)}</textarea>
+    <label>Bemerkung (dauerhaft)</label>
+    <textarea id="e-bem" placeholder="Nur das Nötigste, keine sensiblen Details">${esc(g.bemerkung)}</textarea>
+    <div class="actions" style="margin-top:16px">
+      ${id ? `<button class="btn danger" data-a="delete" data-id="${id}">Löschen</button>` : ""}
+      <button class="btn ghost" data-a="close">Abbrechen</button>
+      <button class="btn primary grow" data-a="edit-save" data-id="${id || ""}">Speichern</button>
+    </div>
+  </div></div>`;
+}
+
+/* ---------- Speichern ---------- */
+const col = () => collection(db, "users", user.uid, "geschwister");
+
+async function saveVisit(id) {
+  const date = document.getElementById("v-date").value || todayStr();
+  const next = document.getElementById("v-next").value.trim();
+  try { await updateDoc(doc(col(), id), { letzterBesuch: date, naechsterBesuch: next }); closeModal(); }
+  catch (e) { alert("Speichern hat nicht geklappt: " + (e.code || e.message)); }
+}
+
+async function saveEdit(id) {
+  const name = document.getElementById("e-name").value.trim();
+  if (!name) { alert("Bitte einen Namen eintragen."); return; }
+  const data = {
+    name,
+    typ: document.getElementById("e-typ").value,
+    gruppe: document.getElementById("e-gruppe").value,
+    letzterBesuch: document.getElementById("e-date").value || "",
+    naechsterBesuch: document.getElementById("e-next").value.trim(),
+    bemerkung: document.getElementById("e-bem").value.trim()
+  };
+  try {
+    if (id) await updateDoc(doc(col(), id), data);
+    else await addDoc(col(), data);
+    closeModal();
+  } catch (e) { alert("Speichern hat nicht geklappt: " + (e.code || e.message)); }
+}
+
+async function removeItem(id) {
+  const g = items.find(x => x.id === id);
+  if (!g || !confirm(`„${g.name}“ wirklich löschen?`)) return;
+  try { await deleteDoc(doc(col(), id)); closeModal(); }
+  catch (e) { alert("Löschen hat nicht geklappt: " + (e.code || e.message)); }
+}
+
+/* ---------- Ereignisse ---------- */
+document.addEventListener("click", e => {
+  const t = e.target.closest("[data-a]");
+  if (!t) return;
+  const a = t.dataset.a;
+  if (a === "overlay") { if (e.target === t) closeModal(); return; }
+  switch (a) {
+    case "mode-login": authMode = "login"; authMsg = null; renderAuth(); break;
+    case "mode-reg": authMode = "reg"; authMsg = null; renderAuth(); break;
+    case "auth-go": authGo(); break;
+    case "reset": resetPw(); break;
+    case "logout": signOut(auth); break;
+    case "filter": filter = t.dataset.v; renderMain(); break;
+    case "new": openEdit(null); break;
+    case "edit": openEdit(t.dataset.id); break;
+    case "visit": openVisit(t.dataset.id); break;
+    case "close": closeModal(); break;
+    case "visit-save": saveVisit(t.dataset.id); break;
+    case "edit-save": saveEdit(t.dataset.id || null); break;
+    case "delete": removeItem(t.dataset.id); break;
+  }
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" && document.getElementById("pw") && document.activeElement.id !== "") authGo();
+});
+
+/* ---------- Start ---------- */
+onAuthStateChanged(auth, u => {
+  user = u;
+  if (unsub) { unsub(); unsub = null; }
+  items = [];
+  closeModal();
+  if (!u) { renderAuth(); return; }
+  renderMain();
+  unsub = onSnapshot(col(), snap => {
+    items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderMain();
+  }, err => { $app.innerHTML = `<div class="setup">Daten konnten nicht geladen werden: ${esc(err.code || err.message)}</div>`; });
+});
+
+/* Beim Zurückkehren in die App neu rechnen (Tageswechsel) */
+document.addEventListener("visibilitychange", () => { if (!document.hidden && user && !$modal.innerHTML) renderMain(); });
+</script>
+</body>
+</html>
